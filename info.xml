@@ -1,17 +1,16 @@
 <?xml version="1.0"?>
 <extension key="io.compuco.eventify" type="module">
   <file>eventify</file>
-  <name>FIXME</name>
-  <description>FIXME</description>
+  <name>Eventify Integration</name>
+  <description>A CiviCRM extension that intergrate CiviCRM with Eventify</description>
   <license>AGPL-3.0</license>
   <maintainer>
-    <author>FIXME</author>
-    <email>FIXME</email>
+    <author>Compuco</author>
+    <email>hello@compucorp.co</email>
   </maintainer>
   <urls>
-    <url desc="Main Extension Page">http://FIXME</url>
-    <url desc="Documentation">http://FIXME</url>
-    <url desc="Support">http://FIXME</url>
+    <url desc="Main Extension Page">https://github.com/compucorp/io.compuco.eventify</url>
+    <url desc="Documentation">https://github.com/compucorp/io.compuco.eventify/blob/master/readme.md</url>
     <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
   </urls>
   <releaseDate>2023-04-19</releaseDate>
@@ -32,5 +31,6 @@
   <mixins>
     <mixin>mgd-php@1.0.0</mixin>
     <mixin>setting-php@1.0.0</mixin>
+    <mixin>menu-xml@1.0.0</mixin>
   </mixins>
 </extension>

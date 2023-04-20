@@ -79,30 +79,19 @@ function eventify_civicrm_entityTypes(&$entityTypes) {
   _eventify_civix_civicrm_entityTypes($entityTypes);
 }
 
-// --- Functions below this ship commented out. Uncomment as required. ---
-
-/**
- * Implements hook_civicrm_preProcess().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_preProcess
- */
-//function eventify_civicrm_preProcess($formName, &$form) {
-//
-//}
-
 /**
  * Implements hook_civicrm_navigationMenu().
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_navigationMenu
  */
-//function eventify_civicrm_navigationMenu(&$menu) {
-//  _eventify_civix_insert_navigation_menu($menu, 'Mailings', [
-//    'label' => E::ts('New subliminal message'),
-//    'name' => 'mailing_subliminal_message',
-//    'url' => 'civicrm/mailing/subliminal',
-//    'permission' => 'access CiviMail',
-//    'operator' => 'OR',
-//    'separator' => 0,
-//  ]);
-//  _eventify_civix_navigationMenu($menu);
-//}
+function eventify_civicrm_navigationMenu(&$menu) {
+  _eventify_civix_insert_navigation_menu($menu, 'Administer/CiviEvent', [
+    'label' => E::ts('Eventify Integration Settings'),
+    'name' => 'eventify_integration_settings',
+    'url' => 'civicrm/admin/setting/preferences/event/eventify',
+    'permission' => 'administer CiviCRM',
+    'operator' => 'OR',
+    'separator' => 0,
+  ]);
+  _eventify_civix_navigationMenu($menu);
+}

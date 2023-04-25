@@ -95,3 +95,31 @@ function eventify_civicrm_navigationMenu(&$menu) {
   ]);
   _eventify_civix_navigationMenu($menu);
 }
+
+/**
+ * Implements hook_civicrm_post().
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_post
+ */
+function eventify_civicrm_post($op, $objectName, $objectId, &$objectRef) {
+  if ($objectName != 'Participant' || ($op == 'delete' || $op == 'view')) {
+    return;
+  }
+  if (CRM_Core_Transaction::isActive()) {
+    CRM_Core_Transaction::addCallback(
+      CRM_Core_Transaction::PHASE_POST_COMMIT,
+      'eventify_civicrm_post_callback', [$objectId]
+    );
+  }
+  else {
+    eventify_civicrm_post_callback($objectId);
+  }
+}
+
+/**
+ * @param $objectId
+ */
+function eventify_civicrm_post_callback($objectId) {
+  $participantHook = new Civi\Eventify\Hook\Post\EventifySync($objectId);
+  $participantHook->sync();
+}

@@ -15,6 +15,15 @@ function eventify_civicrm_config(&$config) {
 }
 
 /**
+ * Implements hook_civicrm_xmlMenu().
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_xmlMenu
+ */
+function eventify_civicrm_xmlMenu(&$files) {
+  _eventify_civix_civicrm_xmlMenu($files);
+}
+
+/**
  * Implements hook_civicrm_install().
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_install
@@ -77,6 +86,15 @@ function eventify_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
  */
 function eventify_civicrm_entityTypes(&$entityTypes) {
   _eventify_civix_civicrm_entityTypes($entityTypes);
+}
+
+/**
+ * Implements hook_civicrm_alterSettingsFolders().
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_alterSettingsFolders
+ */
+function eventify_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
+  _eventify_civix_civicrm_alterSettingsFolders($metaDataFolders);
 }
 
 /**

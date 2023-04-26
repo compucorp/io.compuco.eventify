@@ -15,6 +15,15 @@ function eventify_civicrm_config(&$config) {
 }
 
 /**
+ * Implements hook_civicrm_xmlMenu().
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_xmlMenu
+ */
+function eventify_civicrm_xmlMenu(&$files) {
+  _eventify_civix_civicrm_xmlMenu($files);
+}
+
+/**
  * Implements hook_civicrm_install().
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_install
@@ -80,6 +89,15 @@ function eventify_civicrm_entityTypes(&$entityTypes) {
 }
 
 /**
+ * Implements hook_civicrm_alterSettingsFolders().
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_alterSettingsFolders
+ */
+function eventify_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
+  _eventify_civix_civicrm_alterSettingsFolders($metaDataFolders);
+}
+
+/**
  * Implements hook_civicrm_navigationMenu().
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_navigationMenu
@@ -94,4 +112,32 @@ function eventify_civicrm_navigationMenu(&$menu) {
     'separator' => 0,
   ]);
   _eventify_civix_navigationMenu($menu);
+}
+
+/**
+ * Implements hook_civicrm_post().
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_post
+ */
+function eventify_civicrm_post($op, $objectName, $objectId, &$objectRef) {
+  if ($objectName != 'Participant' || ($op == 'delete' || $op == 'view')) {
+    return;
+  }
+  if (CRM_Core_Transaction::isActive()) {
+    CRM_Core_Transaction::addCallback(
+      CRM_Core_Transaction::PHASE_POST_COMMIT,
+      'eventify_civicrm_post_callback', [$objectId]
+    );
+  }
+  else {
+    eventify_civicrm_post_callback($objectId);
+  }
+}
+
+/**
+ * @param $objectId
+ */
+function eventify_civicrm_post_callback($objectId) {
+  $participantHook = new Civi\Eventify\Hook\Post\EventifySync($objectId);
+  $participantHook->sync();
 }

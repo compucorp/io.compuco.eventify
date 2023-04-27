@@ -52,7 +52,7 @@
     <CustomField>
       <name>participant_roles_to_sync</name>
       <label>Participant roles to sync</label>
-      <data_type>Int</data_type>
+      <data_type>String</data_type>
       <html_type>Select</html_type>
       <is_required>0</is_required>
       <is_searchable>1</is_searchable>

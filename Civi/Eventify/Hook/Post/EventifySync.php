@@ -329,8 +329,6 @@ class EventifySync {
     ];
 
     list($code, $response) = $this->callAPI($url, $header, $data);
-    $this->handleIfApiReturnsError($code, $response);
-
     if (empty($response['session_token'])) {
       throw new \Exception('Session token token does not exist');
     }

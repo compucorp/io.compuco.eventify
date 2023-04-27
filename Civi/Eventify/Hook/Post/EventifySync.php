@@ -134,6 +134,10 @@ class EventifySync {
     try {
       $this->generatedToken = $this->generateToken($this->eventifyEventID);
 
+      if (is_null($this->generatedToken)) {
+        return;
+      }
+
       //When the participant is registered via Webform or online registration form
       //the custom fields will not passed if the fields are not created in a profile / forms
       //therefore, custom fields will not exist here so $syncStatus should be assigned as empty
@@ -330,7 +334,9 @@ class EventifySync {
 
     list($code, $response) = $this->callAPI($url, $header, $data);
     if (empty($response['session_token'])) {
-      throw new \Exception('Session token token does not exist');
+      $this->updateParticipantSyncStatus(400, $response);
+
+      return NULL;
     }
 
     return $response['session_token'];

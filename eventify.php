@@ -141,3 +141,17 @@ function eventify_civicrm_post_callback($objectId) {
   $participantHook = new Civi\Eventify\Hook\Post\EventifySync($objectId);
   $participantHook->sync();
 }
+
+/**
+ * Implements hook_civicrm_custom().
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_custom/
+ */
+function eventify_civicrm_custom($op, $groupID, $entityID, &$params) {
+  if ($op != 'create' && $op != 'edit') {
+    return;
+  }
+
+  $hook = new Civi\Eventify\Hook\Custom\ParticipantCustomSync($op, $groupID, $entityID, $params);
+  $hook->sync();
+}

@@ -2,9 +2,10 @@
 
 namespace Civi\Eventify\Hook\Post;
 
+use Civi\Eventify\Hook\AbstractEventifySync;
 use CRM_Eventify_SettingsManager as SettingsManager;
 
-class EventifySync {
+class EventifySync extends AbstractEventifySync {
 
   /**
    * @var mixed
@@ -47,10 +48,6 @@ class EventifySync {
    * @var string
    */
   private $eventifyEventID;
-  /**
-   * @var string
-   */
-  private $organizationField;
 
   /**
    * EventifySync constructor.
@@ -160,20 +157,6 @@ class EventifySync {
     }
   }
 
-  private function getCountryByID($id) {
-    if (empty($id)) {
-      $id = civicrm_api3('Setting', 'get', [
-        'sequential' => 1,
-        'return' => ["defaultContactCountry"],
-      ])['values'][0]['defaultContactCountry'];
-    }
-
-    return civicrm_api3('Country', 'get', [
-      'sequential' => 1,
-      'id' => $id,
-    ])['values'][0]['name'];
-  }
-
   private function shouldSync() {
     $rolesToSync = $this->event[$this->participantRolesToSyncField];
 
@@ -206,21 +189,14 @@ class EventifySync {
    * @throws \Exception
    */
   private function syncParticipant() {
-    $attendeeFormNumber = $this->getAttendeeFormNumber();
+    $attendeeForm = $this->getAttendeeForm();
+    $attendeeFormNumber = $attendeeForm['form_number'];
     $userCategory = $this->getEventsUserCategory();
     $userInterest = $this->getEventsInterest();
 
     $settings = $this->getSettings();
     $url = $settings[SettingsManager::API_URL] . '/attendee';
     $header = $this->getHeader();
-
-    $detailsForm = [
-      ['id' => 'country', 'value' => $this->getCountryByID($this->contact['country_id'])],
-    ];
-
-    if ($this->organizationField) {
-      $detailsForm[] = ['id' => 'organization', 'value' => $this->organizationField];
-    }
 
     $data = [
       'eventid' => $this->eventifyEventID,
@@ -233,7 +209,7 @@ class EventifySync {
       'isadmin' => 0,
       'isnetworking' => 1,
       'profile_url' => NULL,
-      'details_form' => $detailsForm,
+      'details_form' => [],
       'exhibitoridfk' => NULL,
       'speakeridfk' => NULL,
       'sponsoridfk' => NULL,
@@ -245,6 +221,13 @@ class EventifySync {
     list($code, $response) = $this->callAPI($url, $header, $data);
     $this->handleIfApiReturnsError($code, $response);
     $this->updateParticipantSyncStatus($code, $response);
+
+    $resource = $response['userresponse']['content']['resource'][0];
+    $resource['session_token'] = $this->generatedToken;
+    $resource['form_number'] = $attendeeFormNumber;
+    $resource['details_form'] = json_decode($attendeeForm['details_form'], TRUE);
+
+    \Civi::cache()->set('eventify_sync_params_' . $this->participant['id'], $resource);
   }
 
   /**
@@ -263,14 +246,14 @@ class EventifySync {
   /**
    * @throws \Exception
    */
-  private function getAttendeeFormNumber() {
+  private function getAttendeeForm() {
     $settings = $this->getSettings();
     $url = $settings[SettingsManager::API_URL] . '/myForms' . '?eventid=' . $this->eventifyEventID;
     $header = $this->getHeader();
     list($code, $response)  = $this->callAPI($url, $header, NULL, 'GET');
     $this->handleIfApiReturnsError($code, $response);
 
-    return $response['attendee']['form_number'];
+    return $response['attendee'];
   }
 
   /**
@@ -396,42 +379,6 @@ class EventifySync {
       'Session-Token: ' . $this->generatedToken,
       'Content-Type: application/json',
     ];
-  }
-
-  /**
-   * @throws CiviCRM_API3_Exception
-   */
-  private function callAPI($url, $header, $payload, $method = 'POST') {
-    set_time_limit(60);
-    $connection = curl_init();
-    switch ($method) {
-      case 'POST':
-        curl_setopt($connection, CURLOPT_POST, TRUE);
-        curl_setopt($connection, CURLOPT_POSTFIELDS, json_encode($payload));
-        break;
-
-      default:
-        curl_setopt($connection, CURLOPT_CUSTOMREQUEST, $method);
-        if (!is_null($payload)) {
-          curl_setopt($connection, CURLOPT_POSTFIELDS, json_encode($payload));
-        }
-    }
-    curl_setopt_array($connection, [
-      CURLOPT_URL            => $url,
-      CURLOPT_HTTPHEADER     => $header,
-      CURLOPT_RETURNTRANSFER => TRUE,
-      CURLOPT_TIMEOUT        => 30,
-    ]);
-
-    $response = curl_exec($connection);
-    $httpStatus = curl_getinfo($connection, CURLINFO_HTTP_CODE);
-    curl_close($connection);
-
-    return array_values([$httpStatus, json_decode($response, TRUE)]);
-  }
-
-  private function getSettings() {
-    return SettingsManager::getSettingsValue();
   }
 
 }

@@ -31,7 +31,7 @@ class ParticipantCustomSync extends AbstractEventifySync {
     foreach ($detailsForm as $key => $field) {
       $form[$key]['id'] = $field['id'];
       if ($field['id'] == 'country') {
-        $form[$key]['value'] = $this->getCountryByID($this->contact['country_id']);
+        $form[$key]['value'] = $this->getCountry();
         continue;
       }
       if ($field['id'] == 'company') {
@@ -74,18 +74,21 @@ class ParticipantCustomSync extends AbstractEventifySync {
     return TRUE;
   }
 
-  private function getCountryByID($id) {
-    if (empty($id)) {
-      $id = civicrm_api3('Setting', 'get', [
+  private function getCountry() {
+    $country = civicrm_api3('Participant', 'get', [
+      'sequential' => 1,
+      'id' => $this->entityID,
+      'api.Contact.get' => [],
+    ])['values'][0]['api.Contact.get']['values'][0]['country'];
+
+    if (empty($country)) {
+      return civicrm_api3('Setting', 'get', [
         'sequential' => 1,
         'return' => ["defaultContactCountry"],
       ])['values'][0]['defaultContactCountry'];
     }
 
-    return civicrm_api3('Country', 'get', [
-      'sequential' => 1,
-      'id' => $id,
-    ])['values'][0]['name'];
+    return $country;
   }
 
   private function getOrganization() {
